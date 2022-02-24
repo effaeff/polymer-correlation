@@ -2,6 +2,7 @@
 
 from cProfile import label
 from matplotlib import projections
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
@@ -9,6 +10,7 @@ from matplotlib.cm import ScalarMappable
 import matplotlib.ticker as mtick
 from random import randint
 import os
+from matplotlib.ticker import MaxNLocator
 
 from collections import Counter
 
@@ -111,17 +113,24 @@ def plot_scores(scores, optimal_min_size):
     plt.savefig("results/scores.png", dpi=300)
 
 
-def plot_num_clusters(nums):
+def plot_num_clusters(nums, params, param_key, clustering_name):
 
-    plt.plot(np.arange(2, len(nums) + 2), nums, 'o', ms=4, c="black")
-    plt.plot(np.arange(2, len(nums) + 2), nums, c="black")
-    plt.xticks(
-        np.arange(10, len(nums) + 2, 10), np.arange(10, len(nums) + 2, 10))
-    plt.ylabel("score")
-    plt.xlabel("min size of clusters")
-    plt.title(f"number of clusters per min size of clusters")
+    fig, ax = plt.subplots()
+    ax.plot(nums, 'o', ms=4, c=DARK2[0])
+    ax.plot(nums, c=DARK2[0])
+
+    ax.set_xticks(np.arange(len(nums)))
+    ax.set_xticklabels(params)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.set_ylabel("number of clusters")
+    ax.set_xlabel(param_key)
+    plt.title(f"number of clusters for {clustering_name}")
+
     plt.grid(True)
-    plt.savefig("results/num_clusters.png", dpi=300)
+    plt.savefig(
+        f"results/plots/"
+        f"{clustering_name}/{clustering_name}_num_clusters.png", dpi=300)
+    plt.close()
 
 
 def plot_num_clusters_vs_scores(scores, nums):
@@ -195,10 +204,15 @@ def compare3d_fibers(strain, point_clustering, fibers, fiber_clustering,
                      idxs=None):
 
     sm = ScalarMappable(cmap="gist_ncar")
-    colors = sm.to_rgba(np.unique(point_clustering))
+    clusters = np.unique(point_clustering)
+    colors = sm.to_rgba(clusters)
 
-    point_colors = [colors[idx] for idx in point_clustering]
-    fiber_colors = [colors[idx] for idx in fiber_clustering]
+    point_colors = [
+        colors[np.where(clusters == cluster)][0]
+        for cluster in point_clustering]
+    fiber_colors = [
+        colors[np.where(clusters == cluster)][0]
+        for cluster in fiber_clustering]
 
     fig = plt.figure()
     ax1 = fig.add_subplot(131, projection="3d")
@@ -240,7 +254,7 @@ def compare3d_fibers(strain, point_clustering, fibers, fiber_clustering,
         "_compare3d.png", dpi=300)
 
 
-def plot_confidence(probabilities, thresholds):
+def plot_confidence(probabilities, params, param_key, clustering_name):
 
     fig, axs = plt.subplots(1, 1, sharex=False, sharey=False)
     axs.boxplot(
@@ -251,9 +265,11 @@ def plot_confidence(probabilities, thresholds):
         showfliers=False,
         showmeans=True)
     axs.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1.0))
-    axs.set_xlabel("Threshold")
+    axs.set_xlabel(param_key)
     axs.set_ylabel("Confidence of fiber clustering")
-    axs.set_xticklabels(thresholds)
+    axs.set_xticklabels(params)
 
-    fig.suptitle("Confidence of BIRCH fiber clustering")
-    plt.savefig("BIRCH_confidence.png", dpi=300)
+    fig.suptitle(f"Confidence of {clustering_name} fiber clustering")
+    plt.savefig(
+        f"results/plots/"
+        f"{clustering_name}/{clustering_name}_confidence.png", dpi=300)
