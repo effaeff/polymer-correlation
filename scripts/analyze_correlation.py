@@ -94,17 +94,6 @@ def main():
     ubound = 6000
     lbound = 1000
 
-    # 1. Load Data
-    # 2. Cluster Data with different
-    #       a) Clustering algorithms
-    #       b) Hyperparameters
-    # 3. Save clusterings
-    # 4. Evaluate fiber clustering
-    # 5. Plot
-    #       a) 3D comparison for points and fibers
-    #       b) confidence of fiber clusterings
-    #       c) Num clusters
-
     # Load segments and points
     if os.path.isfile("points.pkl") and os.path.isfile("segments.pkl"):
         print("loading segments and points")
@@ -116,6 +105,10 @@ def main():
         print("parsing points and segments")
         points, segments = parse_xml(
             f'data/fiber/{specimen}.xml', ubound, lbound)
+        with open(f"points.pkl", "wb") as points_file:
+            pickle.dump(points, points_file)
+        with open(f"segments.pkl", "wb") as segments_file:
+            pickle.dump(segments, segments_file)
 
     # Load strain
     if os.path.isfile("strain.npy"):
@@ -143,15 +136,15 @@ def main():
     strain = scaler.fit_transform(strain)
 
     clusterings = [
-        Birch(n_clusters=None),
-        # OPTICS(min_samples=8, n_jobs=-1),  # min_samples = 2*dim
+        # Birch(n_clusters=None),
+        OPTICS(min_samples=8, n_jobs=-1),  # min_samples = 2*dim
         # DBSCAN(min_samples=8, n_jobs=-1),  # (Sander et al., 1998)
         # hdbscan.HDBSCAN(core_dist_n_jobs=-1)
     ]
 
     params = [
-        {"threshold": np.arange(0.05, 0.11, 0.01)},
-        # {},
+        # {"threshold": np.arange(0.05, 0.11, 0.01)},
+        {"max_eps": np.arange(0.25, 1.1, 0.25)},
         # {"eps": np.arange(0.05, 0.19, 0.05)},
         # {"min_cluster_size": np.arange(5, 51, 5)}
     ]
