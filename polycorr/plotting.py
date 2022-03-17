@@ -206,6 +206,8 @@ def compare3d_fibers(strain, point_clustering, fibers, fiber_clustering,
     sm = ScalarMappable(cmap="gist_ncar")
     clusters = np.unique(point_clustering)
     colors = sm.to_rgba(clusters)
+    clusters = np.insert(clusters, 0, -1, axis=0)
+    colors = np.insert(colors, 0, [0., 0., 0., 0.], axis=0)
 
     point_colors = [
         colors[np.where(clusters == cluster)][0]
