@@ -6,6 +6,7 @@ from tkinter import W
 from typing import Collection
 from matplotlib import projections
 from matplotlib.cm import ScalarMappable
+from mpl_toolkits import mplot3d
 
 import numpy as np
 
@@ -18,6 +19,7 @@ from sklearn.manifold import TSNE
 from sklearn.neighbors import NearestNeighbors, NeighborhoodComponentsAnalysis
 
 import pickle
+import joblib
 from collections import Counter
 from tqdm import tqdm
 import time
@@ -61,7 +63,7 @@ def eval_fiber_clustering(segments, clustering):
     return most_common_clusters, probabilities
 
 
-def plot_results(strain, segments, segments_strain, points, clustering,
+def plot_results(strain, segments, points, clustering,
                  clustering_name, param_key, param_val):
 
     line_scaler = MinMaxScaler()
@@ -72,19 +74,12 @@ def plot_results(strain, segments, segments_strain, points, clustering,
         line_scaler.partial_fit(line)
         lines.append(line)
 
-    scales_lines = []
-    for line in lines:
-        line = line_scaler.transform(line)
-        scales_lines.append(line)
-
-    lines = scales_lines
-
     most_common_clusters, prob = eval_fiber_clustering(
-        segments_strain, clustering)
+        segments, clustering)
 
     strain = np.transpose(strain)
 
-    plotting.compare3d_fibers(
+    plotting.compare3d_fibers_point_clustering(
         strain,
         clustering,
         lines,
@@ -142,46 +137,27 @@ def main():
     strain = strain[np.where(strain[:, 3] < ulimit)]
     strain = strain[np.where(strain[:, 3] > llimit)]
 
-    strain_scaler = MinMaxScaler()
     points_scaler = MinMaxScaler()
-    points_s = points_scaler.fit_transform(points)
-    strain_s = strain_scaler.fit_transform(strain)
-
-    neigh = NearestNeighbors(n_neighbors=1, metric="euclidean")
-    neigh.fit(strain_s[:, :3])
-
-    neighbors = neigh.kneighbors(points_s, return_distance=True)
-
-    segment_strains = []
-
-    for segment in segments:
-        segment_strains.append(neighbors[1][segment])
+    points = points_scaler.fit_transform(points)
 
     must_link = []
-    for segment_strain in segment_strains:
-        must_link.append((segment_strain[0][0], segment_strain[-1][0]))
-
-    print("scale strain")
-    scaler = MinMaxScaler()
-    strain = scaler.fit_transform(strain)
 
     clusterings = [
-        PCKMeans()
-        # Birch(n_clusters=None),
+        Birch(n_clusters=None),
         # OPTICS(min_samples=8, n_jobs=-1),  # min_samples = 2*dim
         # DBSCAN(min_samples=8, n_jobs=-1),  # (Sander et al., 1998)
         # hdbscan.HDBSCAN(core_dist_n_jobs=-1)
     ]
 
     params = [
-        {"n_clusters": [1000]}
-        # {"threshold": np.arange(0.05, 0.26, 0.05)},
+        {"threshold": np.arange(0.05, 0.11, 0.01)},
         # {"max_eps": np.arange(0.25, 1.1, 0.25)},
         # {"eps": np.arange(0.05, 0.19, 0.05)},
-        # {"min_cluster_size": np.arange(5, 51, 5)}
+        # {"min_cluster
+        # _size": np.arange(5, 51, 5)}
     ]
 
-    sys.setrecursionlimit(10000)
+    sys.setrecursionlimit(20000)
 
     pbar_clustering = tqdm(clusterings)
     for idx, clustering in enumerate(pbar_clustering):
@@ -226,7 +202,8 @@ def main():
                     if clustering.__class__.__name__ in dir(pw_c):
                         clustering.fit(strain, ml=must_link)
                     else:
-                        clustering.fit(strain)
+                        clustering.fit(points)
+
                     save_clustering(
                         clustering,
                         f"{clustering.__class__.__name__}"
@@ -234,13 +211,13 @@ def main():
                     )
 
                 _, prob = eval_fiber_clustering(
-                    segment_strains, clustering.labels_
+                    segments, clustering.labels_
                 )
 
                 probabilities.append(prob)
                 num_clusters.append(len(np.unique(clustering.labels_)))
 
-                plot_results(strain, segments, segment_strains, points,
+                plot_results(strain, segments, points,
                              clustering.labels_, clustering.__class__.__name__,
                              key, value)
 
@@ -272,19 +249,19 @@ def main():
 
             else:
 
-                clustering.fit(strain)
+                clustering.fit(points)
                 save_clustering(
                     clustering,
                     f"{clustering.__class__.__name__}"
                 )
 
             _, prob = eval_fiber_clustering(
-                segment_strains, clustering.labels_
+                segments, clustering.labels_
             )
 
             num_clusters.append(len(np.unique(clustering.labels_)))
 
-            plot_results(strain, segments, segment_strains, points,
+            plot_results(strain, segments, segments, points,
                          clustering.labels_,
                          clustering.__class__.__name__, "", "")
 

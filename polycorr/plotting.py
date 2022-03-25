@@ -256,6 +256,73 @@ def compare3d_fibers(strain, point_clustering, fibers, fiber_clustering,
         "_compare3d.png", dpi=300)
 
 
+def compare3d_fibers_point_clustering(strain, point_clustering, fibers,
+                                      fiber_clustering, points,
+                                      clustering_name, param_key, param_val,
+                                      idxs=None):
+
+    sm = ScalarMappable(cmap="gist_ncar")
+    clusters = np.unique(point_clustering)
+    colors = sm.to_rgba(clusters)
+    clusters = np.insert(clusters, 0, -1, axis=0)
+    colors = np.insert(colors, 0, [0., 0., 0., 0.], axis=0)
+
+    point_colors = [
+        colors[np.where(clusters == cluster)][0]
+        for cluster in point_clustering]
+    fiber_colors = [
+        colors[np.where(clusters == cluster)][0]
+        for cluster in fiber_clustering]
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(131, projection="3d")
+    ax2 = fig.add_subplot(132, projection="3d")
+    ax3 = fig.add_subplot(133, projection="3d")
+
+    ax1.scatter(*strain[:3], c=strain[-1])
+    ax1.tick_params(
+        left=False, bottom=False, labelleft=False, labelbottom=False)
+    ax1.set_title("strain", y=-0.1)
+
+    points = np.transpose(points)
+
+    if idxs is not None:
+        points = points[:, idxs]
+    ax2.scatter(*points[:3], c=point_colors)
+    ax2.tick_params(
+        left=False, bottom=False, labelleft=False, labelbottom=False)
+    ax2.set_title("point clustering", y=-0.1)
+
+    collection = mplot3d.art3d.Line3DCollection(
+        fibers, colors=fiber_colors)
+
+    ax3.add_collection(collection)
+    # ax3.set_xlim([0, np.max(points[0])])
+    # ax3.set_ylim([0, np.max(points[1])])
+    # ax3.set_zlim([0, np.max(points[2])])
+    ax3.tick_params(
+        left=False, bottom=False, labelleft=False, labelbottom=False)
+    ax3.set_xlim([0, np.max(points[0])])
+    ax3.set_ylim([0, np.max(points[1])])
+    ax3.set_zlim([0, np.max(points[2])])
+    # ax3.set_xticks(ax2.get_xticks())
+    # ax3.set_yticks(ax2.get_yticks())
+    # ax3.set_zticks(ax2.get_zticks())
+
+    ax3.set_title("fiber clustering", y=-0.1)
+
+    plt.tight_layout()
+    fig.suptitle(
+        f"{clustering_name} with {param_key} = {param_val}", y=0.9)
+    path = f"results/plots/{clustering_name}"
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    plt.savefig(
+        f"{path}"
+        f"/{clustering_name}_-{param_key}_{param_val}"
+        "_compare3d_point_clustering.png", dpi=300)
+
+
 def plot_confidence(probabilities, params, param_key, clustering_name):
 
     fig, axs = plt.subplots(1, 1, sharex=False, sharey=False)
