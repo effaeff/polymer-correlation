@@ -34,3 +34,6 @@ figures/
 misc.py
 plotter.py
 out.txt
+polycorr/__init__.py
+scripts/__init__.py
+*.pkl
