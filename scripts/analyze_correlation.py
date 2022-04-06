@@ -78,13 +78,22 @@ def plot_results(strain, segments, points, clustering,
         segments, clustering)
 
     strain = np.transpose(strain)
+    points = np.transpose(points)
 
-    plotting.compare3d_fibers_point_clustering(
-        strain,
-        clustering,
-        lines,
-        most_common_clusters,
+    # plotting.compare3d_fibers_point_clustering(
+    #     strain,
+    #     clustering,
+    #     lines,
+    #     most_common_clusters,
+    #     points,
+    #     clustering_name,
+    #     param_key,
+    #     param_val
+    # )
+
+    plotting.plot_point_clustering(
         points,
+        clustering,
         clustering_name,
         param_key,
         param_val
@@ -150,7 +159,7 @@ def main():
     ]
 
     params = [
-        {"threshold": np.arange(0.05, 0.11, 0.01)},
+        {"threshold": np.arange(0.15, 0.26, 0.05)},
         # {"max_eps": np.arange(0.25, 1.1, 0.25)},
         # {"eps": np.arange(0.05, 0.19, 0.05)},
         # {"min_cluster
@@ -186,7 +195,7 @@ def main():
                 pbar_params.set_postfix_str(
                     f"{key} = {getattr(clustering, key)}")
 
-                clustering_path = (f"results/clusterings/"
+                clustering_path = (f"results/clusterings/point/"
                                    f"{clustering.__class__.__name__}/"
                                    f"{clustering.__class__.__name__}-"
                                    f"{key}_{value}.pkl")
@@ -237,7 +246,7 @@ def main():
 
         else:
 
-            clustering_path = (f"results/clusterings/"
+            clustering_path = (f"results/clusterings/point/"
                                f"{clustering.__class__.__name__}/"
                                f"{clustering.__class__.__name__}.pkl")
 
