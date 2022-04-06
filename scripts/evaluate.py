@@ -77,7 +77,6 @@ def main():
     data = []
 
     points_s = np.transpose(points_s)
-    strain_s = np.transpose(strain_s[strain_neighbors][:, 0])
 
     for value in values:
 
@@ -98,6 +97,15 @@ def main():
         # Select clustering of strains which correspond to points
         point_clusters = point_clustering.labels_
         strain_clusters = strain_clustering.labels_[strain_neighbors][:, 0]
+
+        # plotting.compare3d_clustering(
+        #     point_clusters,
+        #     strain_clusters,
+        #     points_s,
+        #     clustering,
+        #     key,
+        #     value
+        # )
 
         scores.append(value)
 
@@ -123,7 +131,7 @@ def main():
         "v_measure_score"
     ]
 
-    with open("results/similarity_scores_2.txt", "w+") as score_file:
+    with open("results/similarity_scores.txt", "w+") as score_file:
         score_file.write("Comparison between strain clustering over"
                          "different birch-thresholds \nand point clustering "
                          "with birch-threshold 0.1\n\n")
@@ -134,4 +142,5 @@ if __name__ == '__main__':
     import sys
     sys.path.insert(0, os.getcwd())
     from polycorr.parse_xml import parse_xml
+    import polycorr.plotting as plotting
     main()

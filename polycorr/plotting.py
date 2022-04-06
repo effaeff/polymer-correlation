@@ -309,3 +309,37 @@ def plot_point_clustering(points, point_clustering, clustering_name, param_key,
         f"{path}"
         f"/{clustering_name}_-{param_key}_{param_val}"
         "_points.png", dpi=300)
+
+
+def compare3d_clustering(point_clustering, strain_clustering,
+                         points, clustering_name, param_key, param_val,
+                         idxs=None):
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(121, projection="3d")
+    ax2 = fig.add_subplot(122, projection="3d")
+
+    ax1.scatter(*points, c=strain_clustering, cmap="gist_ncar")
+    ax1.tick_params(
+        left=False, bottom=False, labelleft=False, labelbottom=False)
+    ax1.set_title("strain clustering", y=-0.1)
+
+    if idxs is not None:
+        strain = strain[:, idxs]
+    ax2.scatter(*points, c=point_clustering, cmap="gist_ncar")
+    ax2.tick_params(
+        left=False, bottom=False, labelleft=False, labelbottom=False)
+    ax2.set_title("point clustering", y=-0.1)
+
+    plt.axis('auto')
+
+    plt.tight_layout()
+    fig.suptitle(
+        f"{clustering_name} with {param_key} = {param_val}", y=0.9)
+    path = f"results/plots/{clustering_name}"
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    plt.savefig(
+        f"{path}"
+        f"/{clustering_name}_-{param_key}_{param_val}"
+        "_compare3d_clustering.png", dpi=300)
