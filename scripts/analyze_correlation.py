@@ -166,7 +166,7 @@ def main():
     ]
 
     params = [
-        {"threshold": np.arange(0.05, 0.26, 0.05)},
+        {"threshold": np.arange(0.06, 0.1, 0.01)},
         # {"max_eps": np.arange(0.25, 1.1, 0.25)},
         # {"eps": np.arange(0.05, 0.19, 0.05)},
         # {"min_cluster_size": np.arange(5, 51, 5)}
@@ -201,7 +201,7 @@ def main():
                 pbar_params.set_postfix_str(
                     f"{key} = {getattr(clustering, key)}")
 
-                clustering_path = (f"results/clusterings/"
+                clustering_path = (f"results/clusterings/strain/"
                                    f"{clustering.__class__.__name__}/"
                                    f"{clustering.__class__.__name__}-"
                                    f"{key}_{value}.pkl")
@@ -248,7 +248,7 @@ def main():
 
         else:
 
-            clustering_path = (f"results/clusterings/"
+            clustering_path = (f"results/clusterings/strain/"
                                f"{clustering.__class__.__name__}/"
                                f"{clustering.__class__.__name__}.pkl")
 
