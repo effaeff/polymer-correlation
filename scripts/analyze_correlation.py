@@ -24,8 +24,10 @@ import time
 
 from sklearn.cluster import AgglomerativeClustering, Birch, OPTICS, DBSCAN
 import active_semi_clustering.semi_supervised.pairwise_constraints as pw_c
-from active_semi_clustering.semi_supervised.pairwise_constraints import (
-    PCKMeans)
+# from active_semi_clustering.semi_supervised.pairwise_constraints import (
+#     PCKMeans)
+from pckmeans_empty import PCKMeans
+from itertools import combinations
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import MinMaxScaler
 
@@ -105,6 +107,8 @@ def main():
     ubound = 6000
     lbound = 1000
 
+    link = "all"  # ['all', 'start-end']
+
     # Load segments and points
     if os.path.isfile("points.pkl") and os.path.isfile("segments.pkl"):
         print("loading segments and points")
@@ -142,40 +146,32 @@ def main():
     strain = strain[np.where(strain[:, 3] < ulimit)]
     strain = strain[np.where(strain[:, 3] > llimit)]
 
-    strain_scaler = MinMaxScaler()
-    points_scaler = MinMaxScaler()
-    points_s = points_scaler.fit_transform(points)
-    strain_s = strain_scaler.fit_transform(strain)
-
-    neigh = NearestNeighbors(n_neighbors=1, metric="euclidean")
-    neigh.fit(strain_s[:, :3])
-
-    neighbors = neigh.kneighbors(points_s, return_distance=True)
-
-    segment_strains = []
-
-    for segment in segments:
-        segment_strains.append(neighbors[1][segment])
-
     must_link = []
-    for segment_strain in segment_strains:
-        must_link.append((segment_strain[0][0], segment_strain[-1][0]))
+    if link == 'start-end':
+        for segment in segments:
+            must_link.append((segment[0], segment[-1]))
+    elif link == 'all':
+        for segment in segments:
+            for pair in combinations(segment, 2):
+                must_link.append(pair)
+
+    must_link = np.unique(must_link, axis=0)
 
     print("scale strain")
     scaler = MinMaxScaler()
-    strain = scaler.fit_transform(strain)
+    points = scaler.fit_transform(points)
 
     clusterings = [
-        PCKMeans()
-        # Birch(n_clusters=None),
+        # PCKMeans()
+        Birch(n_clusters=None),
         # OPTICS(min_samples=8, n_jobs=-1),  # min_samples = 2*dim
         # DBSCAN(min_samples=8, n_jobs=-1),  # (Sander et al., 1998)
         # hdbscan.HDBSCAN(core_dist_n_jobs=-1)
     ]
 
     params = [
-        {"n_clusters": [1000]}
-        # {"threshold": np.arange(0.05, 0.26, 0.05)},
+        # {"n_clusters": [190625]}
+        {"threshold": np.arange(0.05, 0.8, 0.01)},
         # {"max_eps": np.arange(0.25, 1.1, 0.25)},
         # {"eps": np.arange(0.05, 0.19, 0.05)},
         # {"min_cluster_size": np.arange(5, 51, 5)}
@@ -224,32 +220,33 @@ def main():
                 else:
 
                     if clustering.__class__.__name__ in dir(pw_c):
-                        clustering.fit(strain, ml=must_link)
+                        print("cluster semi-supervised")
+                        clustering.fit(points, ml=must_link)
                     else:
-                        clustering.fit(strain)
+                        clustering.fit(points)
                     save_clustering(
                         clustering,
                         f"{clustering.__class__.__name__}"
                         f"-{key}_{value}"
                     )
 
-                _, prob = eval_fiber_clustering(
-                    segment_strains, clustering.labels_
-                )
+            #     _, prob = eval_fiber_clustering(
+            #         points, clustering.labels_
+            #     )
 
-                probabilities.append(prob)
-                num_clusters.append(len(np.unique(clustering.labels_)))
+            #     probabilities.append(prob)
+            #     num_clusters.append(len(np.unique(clustering.labels_)))
 
-                plot_results(strain, segments, segment_strains, points,
-                             clustering.labels_, clustering.__class__.__name__,
-                             key, value)
+            #     plot_results(strain, segments, points, points,
+            #                  clustering.labels_, clustering.__class__.__name__,
+            #                  key, value)
 
-            plotting.plot_confidence(
-                probabilities,
-                np.round(param[key], 2),
-                key,
-                clustering.__class__.__name__
-            )
+            # plotting.plot_confidence(
+            #     probabilities,
+            #     np.round(param[key], 2),
+            #     key,
+            #     clustering.__class__.__name__
+            # )
 
             plotting.plot_num_clusters(
                 num_clusters,
@@ -279,12 +276,12 @@ def main():
                 )
 
             _, prob = eval_fiber_clustering(
-                segment_strains, clustering.labels_
+                points, clustering.labels_
             )
 
             num_clusters.append(len(np.unique(clustering.labels_)))
 
-            plot_results(strain, segments, segment_strains, points,
+            plot_results(strain, segments, points, points,
                          clustering.labels_,
                          clustering.__class__.__name__, "", "")
 
