@@ -162,16 +162,16 @@ def main():
     points = scaler.fit_transform(points)
 
     clusterings = [
-        # PCKMeans()
-        Birch(n_clusters=None),
+        PCKMeans()
+        # Birch(n_clusters=None),
         # OPTICS(min_samples=8, n_jobs=-1),  # min_samples = 2*dim
         # DBSCAN(min_samples=8, n_jobs=-1),  # (Sander et al., 1998)
         # hdbscan.HDBSCAN(core_dist_n_jobs=-1)
     ]
 
     params = [
-        # {"n_clusters": [190625]}
-        {"threshold": np.arange(0.05, 0.8, 0.01)},
+        {"n_clusters": [16, 26, 279, 378, 538, 775, 1220, 2149]}
+        # {"threshold": np.arange(0.05, 0.8, 0.01)},
         # {"max_eps": np.arange(0.25, 1.1, 0.25)},
         # {"eps": np.arange(0.05, 0.19, 0.05)},
         # {"min_cluster_size": np.arange(5, 51, 5)}
@@ -248,12 +248,12 @@ def main():
             #     clustering.__class__.__name__
             # )
 
-            plotting.plot_num_clusters(
-                num_clusters,
-                np.round(param[key], 2),
-                key,
-                clustering.__class__.__name__
-            )
+            # plotting.plot_num_clusters(
+            #     num_clusters,
+            #     np.round(param[key], 2),
+            #     key,
+            #     clustering.__class__.__name__
+            # )
 
         else:
 
