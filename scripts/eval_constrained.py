@@ -3,7 +3,8 @@ import numpy as np
 import os
 import pickle
 from collections import Counter
-from sklearn.metrics import adjusted_rand_score, fowlkes_mallows_score, v_measure_score
+from sklearn.metrics import (adjusted_rand_score, fowlkes_mallows_score,
+                             v_measure_score)
 from tabulate import tabulate
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import NearestNeighbors
@@ -153,7 +154,7 @@ def main():
             point_clusters,
             strain_clusters,
             points_s,
-            clustering,
+            "pckmeans",
             key,
             value
         )

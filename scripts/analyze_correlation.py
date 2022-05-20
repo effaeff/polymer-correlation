@@ -107,7 +107,7 @@ def main():
     ubound = 6000
     lbound = 1000
 
-    link = "all"  # ['all', 'start-end']
+    link = "start-end"  # ['all', 'start-end']
 
     # Load segments and points
     if os.path.isfile("points.pkl") and os.path.isfile("segments.pkl"):
@@ -238,7 +238,7 @@ def main():
             #     num_clusters.append(len(np.unique(clustering.labels_)))
 
             #     plot_results(strain, segments, points, points,
-            #                  clustering.labels_, clustering.__class__.__name__,
+            #                clustering.labels_, clustering.__class__.__name__,
             #                  key, value)
 
             # plotting.plot_confidence(
